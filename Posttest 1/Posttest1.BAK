@@ -1,0 +1,24 @@
+predicates
+  phone(symbol, long, symbol) - nondeterm (o, o, i), nondeterm (o, i, i)
+  piano(symbol, long, symbol) - nondeterm (o, o, i), nondeterm (o, i, i)
+  motor(symbol, long, symbol) - nondeterm (o, o, i), nondeterm (o, i, i)
+  beli(symbol, long, symbol) - nondeterm (o, o, i), nondeterm (o, i, i)
+  jual(symbol, long, symbol) - nondeterm (o, o, i), nondeterm (o, i, i)
+  
+clauses
+  phone(nokia, 2000000, merah).
+  piano(yamaha, 3000000, hitam).
+  motor(honda, 15500000, biru).
+  
+  beli(Merk, Harga, Warna):-
+  	phone(Merk, Harga, Warna);
+  	piano(Merk, Harga, Warna).
+  
+  jual(Merk, Harga, Warna):-     
+  	phone(Merk, Harga, Warna);
+  	piano(Merk, Harga, Warna);
+  	motor(Merk, Harga, Warna).
+  	
+goal
+  beli(Merk, Harga, hitam);
+  jual(Merk, 15500000, Warna).
