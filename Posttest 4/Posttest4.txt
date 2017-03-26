@@ -1,0 +1,99 @@
+DOMAINS
+	nama,jender,pekerjaan,benda,alasan,zat = symbol %inisialisasi variabel nama, jender, pekerjaan, benda, alasan, dan zat dengan type simbol  
+	umur=integer %inisialisasi umur dengan tipe integer
+
+PREDICATES
+	nondeterm orang(nama, umur, jender, pekerjaan) %predikat orang memiliki nama umur jender dan pekerjaan
+	nondeterm selingkuh(nama, nama)	%predikat selingkuh menyatakan dua orang yang berselingkuh
+	terbunuh_dengan(nama, benda)
+	terbunuh(nama)
+	nondeterm pembunuh(nama)
+	motif(alasan)
+	ternodai(nama, zat)
+	milik(nama, benda)
+	nondeterm cara_kerja_mirip(benda, benda)
+	nondeterm kemungkinan_milik(nama, benda)
+	nondeterm dicurigai(nama)
+
+/* * * Fakta-fakta tentang pembunuhan * * */
+CLAUSES
+	orang(budi,55,m,tukang_kayu). %budi orang yang berumur 55 dengan jender male(laki-laki) dan pekerjaannya tukang kayu
+	orang(aldi,25,m,pemain_sepak_bola). %aldi orang yang berumur 25 dengan jender male dan pekerjaannya pemain sepak bola
+	orang(aldi,25,m,tukang_jagal). %aldi juga memiliki pekerjaan sebagai tukang jagal
+	orang(joni,25,m,pencopet). %joni orang yang berumur 25 dengan jender laki-laki dan pekerjaannya poncopet
+	selingkuh(ina,joni). %ina berselingkuh dengan joni
+	selingkuh(ina,budi). %ina juga selingkuh dengan budi
+	selingkuh(siti,joni). %siti berselingkuh dengan joni
+	terbunuh_dengan(siti,pentungan). %siti terbunuh oleh pentungan
+	terbunuh(siti). %siti terbunuh
+	motif(uang).	
+	motif(cemburu).
+	motif(dendam). %ada 3 motif pembunuhan yaitu karena uang,cemburu,dan dendam
+	ternodai(budi, darah). %budi ternodai oleh darah
+	ternodai(siti, darah). %siti ternodai oleh darah
+	ternodai(aldi, lumpur). %aldi ternodai oleh lumpur
+	ternodai(joni, coklat). %joni ternodai oleh coklat
+	ternodai(ina, coklat). %ina ternodai oleh coklat
+	milik(budi,kaki_palsu).	%budi memiliki kaki palsu
+	milik(joni,pistol).	%joni memiliki pistol
+
+	/* * * Basis Pengetahuan * * */
+	cara_kerja_mirip(kaki_palsu, pentungan). %kaki palsu cara kerjanya mirip dengan pentungan
+	cara_kerja_mirip(balok, pentungan). %balok cara kerjanya mirip dengan pentungan
+	cara_kerja_mirip(gunting, pisau).	%gunting cara kerjanya mirip dengan pisau
+	cara_kerja_mirip(sepatu_bola, pentungan). %sepatu bola cara kerjanya mirip dengan pentungan
+
+	/*** Dibawah ini adalah aturan-aturan ***/
+	kemungkinan_milik(X,sepatu_bola):-	% X kemungkinan memiliki sepatu bola jika
+	orang(X,_,_,pemain_sepak_bola).	% X adalah orang sebagai pemain sepak bola
+	kemungkinan_milik(X,gunting):-	% X kemungkinan memiliki gunting jika
+	orang(X,_,_,pekerja_salon).		% X adalah orang yang bekerja di salon namun tidak ada didalam fakta orang yang bekerja di salon
+	kemungkinan_milik(X,Benda):- 	% X kemungkinan memiliki Benda yang disebutkan diatas jika
+	milik(X,Benda).	% X memiliki sepatu bola. Jadi sesuai dengan aturan yang memiliki sepatu bola adalah aldi
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+* dicurigai semua orang yang memiliki senjata yang 		*
+* kerjanya mirip dengan senjata penyebab siti terbunuh. *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	%Perlu diingat siti terbunuh oleh pentungan
+	dicurigai(X):- %subjek X dicurigai jika
+		terbunuh_dengan(siti,Senjata) , %siti terbunuh oleh Senjata yang membunuhnya yaitu pentungan
+		cara_kerja_mirip(Benda,Senjata) , %Benda memiliki cara kerja seperti Senjata
+		kemungkinan_milik(X,Benda). % X kemungkinan pemilik dari Benda. X adalah budi dan aldi yang kemungkinan memiliki kaki palsu dan sepatu bola.
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * *
+* dicurigai laki-laki yang selingkuh dengan siti. *
+* * * * * * * * * * * * * * * * * * * * * * * * * */
+	dicurigai(X):- % X dicurigai jika
+		motif(cemburu), % motif pembunuhannya cemburu
+		orang(X,_,m,_), % dan X adalah orang dengan jendernya male
+		selingkuh(siti,X). % dan siti selingkuh dengan X. Yang sesuai dengan X pada aturan ini adalah joni.
+
+/* * * * * * * * * * * * * * * * * * * * * * *
+* dicurigai perempuan yang selingkuh dengan *
+* laki-laki yang juga selingkuh dengan siti *
+* * * * * * * * * * * * * * * * * * * * * * */
+	dicurigai(X):- % X dicurigai jika
+		motif(cemburu), % motif pembunuhannya karena cemburu.
+		orang(X,_,f,_), % X adalah orang berjender female. Pada predikat tidak ada subjek berjender female. Sehingga tidak ada yang dicurigai cemburu adalah motif pembunuhannya.
+		selingkuh(X,Lakilaki), % X selingkuh dengan laki-laki.
+		selingkuh(siti,Lakilaki). % Siti selingkuh dengan laki-laki.
+		
+/* * * * * * * * * * * * * * * * * * * * * * * * * * *
+* dicurigai pencopet yang mempunyai motif uang. *
+* * * * * * * * * * * * * * * * * * * * * * * * * * */
+	dicurigai(X):- % X dicurigai jika
+		motif(uang), % uang merupakan motif dari pembunuhan
+		orang(X,_,_,pencopet). % X orang yang pekerjaannya adalah pencopet . X adalah aldi.
+		
+	pembunuh(Pembunuh):- % Pembunuh adalah pembunuhnya jika
+		orang(Pembunuh,_,_,_), % Pembunuh adalah orang
+		terbunuh(Terbunuh), % Terbunuh itu telah terbunuh, lalu visual prolog mencari predikat dan mencocokkannya. ternyata yang terbunuh adalah siti.
+		Terbunuh <> Pembunuh, /* Bukan bunuh diri */
+		dicurigai(Pembunuh), % Pembunuh adalah orang yang dicurigai. Ada 3 orang yang dicurigai yaitu aldi, budi, dan joni
+		ternodai(Pembunuh,Zat), % Pembunuh ternodai oleh Zat.
+		ternodai(Terbunuh,Zat). % Terbunuh ternodai oleh Zat. pada fakta siti ternodai oleh darah.
+		% pada subgoal ini terjadi proses unifikasi dan lacak balik, unifikasi dilakukan dengan mencocokkan yang ada pada subgoal ini dengan klausa yang ada. Jika belum ditemukan maka visual prolog akan mencari kemungkinan lainnya dengan melakukan backtracking(lacak balik), hingga semua kemungkinan telah diuji. Sehingga bisa mendapatkan goal nya. Karena pada subgoal ini siti ternodai oleh darah dan pembunuhnya juga ternodai darah maka dapat diketahui pembunuhnya adalah budi.
+GOAL
+	pembunuh(X). % Goal nya adalah mencari pembunuhnya
+	% setelah dilakukan pengecekan secara unifikasi dan lacakbalik ditemukan pembunuhnya yaitu budi.
